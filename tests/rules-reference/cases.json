@@ -1,0 +1,127 @@
+{
+    "commonRequired": ["AGENTS.md", "docs/03-task-reporting.md"],
+    "cases": [
+        {
+            "id": "B01",
+            "title": "错误解释与事实边界",
+            "fixture": "error",
+            "prompt": "请检查 error.mjs，解释运行时的错误、已经确认的原因，以及修复后的验证方法。这次只分析，不修改文件。",
+            "required": ["docs/02-asd-ste100-technical-writing.md", "preferences/MY_TASTE.md", "preferences/communication.md"],
+            "rubric": ["中文解释中引用实际代码或运行结果，正确区分已确认原因与假设。", "提出针对性验证方法，未将建议、未执行的修复或测试写成完成。"]
+        },
+        {
+            "id": "B02",
+            "title": "空数组求和修复与验证",
+            "fixture": "sum",
+            "write": true,
+            "prompt": "修复 sum.mjs 中 sum([]) 抛异常的问题：空数组应返回 0，已有数字数组的求和行为应保留。运行相关测试，并补充必要的回归测试。保留项目中与此任务无关的已有改动。",
+            "required": ["docs/01-karpathy-execution-principles.md", "docs/02-asd-ste100-technical-writing.md", "docs/04-verification-checklist.md", "preferences/MY_TASTE.md", "preferences/communication.md", "preferences/technology.md", "preferences/testing.md"],
+            "allowedChanges": ["sum.mjs", "sum*.test.mjs"],
+            "rubric": ["先用空数组复现原始失败，修改后用相同输入确认返回 0，并保留非空数组行为。", "测试覆盖需求而非镜像实现；只做必要修改，准确汇报执行过的检查。", "执行原则及相关工程偏好在首次修改前读取；验证清单在修复后的验证前读取。"]
+        },
+        {
+            "id": "B03",
+            "title": "本地便签工程方案",
+            "fixture": "empty",
+            "prompt": "为供我个人本地使用的便签工具制定最小工程和启动方案，只输出方案，不创建项目。使用 npm，便签保存为本地 JSON 文件；功能只有新增、列表和删除。说明技术选择、目录职责、启动停止重启方式、数据及日志位置和必要的验证。其他选择按我的已确认习惯处理。",
+            "required": ["docs/01-karpathy-execution-principles.md", "docs/02-asd-ste100-technical-writing.md", "preferences/MY_TASTE.md", "preferences/communication.md", "preferences/technology.md", "preferences/architecture.md", "preferences/runtime-and-logging.md"],
+            "rubric": ["采用 JavaScript、Vue 3 Composition API/script setup、Node.js/Express、client/ 与 server/；分层与功能复杂度相称。", "本地 JSON/npm 的明确要求得到保留，默认不加账号体系或云部署。", "包含两个终端分别启动、停止重启、端口冲突、数据位置，以及终端和受控大小文件日志的说明。"]
+        },
+        {
+            "id": "B04",
+            "title": "接口空标题校验",
+            "fixture": "api",
+            "write": true,
+            "prompt": "修复 api.mjs 的 POST /notes 接口：标题必须是非空字符串，纯空白、缺失及其他类型返回 400，错误结构沿用项目约定；正常标题返回 201，标题去掉首尾空白。先明确接口输入输出，再实现并运行针对性测试。保留项目现有架构和无关改动。",
+            "required": ["docs/01-karpathy-execution-principles.md", "docs/02-asd-ste100-technical-writing.md", "docs/04-verification-checklist.md", "preferences/MY_TASTE.md", "preferences/communication.md", "preferences/technology.md", "preferences/api-and-data.md", "preferences/testing.md"],
+            "allowedChanges": ["api.mjs", "api*.test.mjs", "README.md"],
+            "rubric": ["修改前明确 POST /notes 的输入、201 成功和400 错误结构；保留微型项目已有 HTTP 架构。", "复现非法输入问题，验证正常、缺失、空白、非字符串输入与标题修剪。", "只做必要修改，保留已有无关改动并如实汇报。"]
+        },
+        {
+            "id": "B05",
+            "title": "Vue 主题布局与官方组件复用",
+            "fixture": "vue",
+            "prompt": "请检查现有 Vue 数据页面，为它提出适合我习惯的主题、布局和组件复用方案。页面需要统计概览、趋势图、明细表格和删除确认，支持请求加载、空结果、成功和失败状态。本次只给方案，不安装依赖、不修改文件。请核对可用的官方组件或 Blocks，并提供核对依据；资料无法访问时明确说明。",
+            "required": ["docs/01-karpathy-execution-principles.md", "docs/02-asd-ste100-technical-writing.md", "preferences/MY_TASTE.md", "preferences/communication.md", "preferences/technology.md", "preferences/ui-style.md", "preferences/ui-components.md", "preferences/ui-layout-and-interaction.md"],
+            "rubric": ["保留 Vue 项目惯例，方案体现 Lyra、系统主题、高信息密度及清晰层级。", "统计卡片、趋势图、明细表格组织适合任务，提供相关加载/成功/空/失败及重复提交处理。", "通过工具实际核对 shadcn-vue 官方组件/Blocks；若访问失败明确披露，不能用记忆冒充查询结果。", "优先组合官方组件；自定义能力若确有必要，先说明缺口及原因。"]
+        },
+        {
+            "id": "E01",
+            "title": "跨目录解析及同名干扰",
+            "fixture": "decoy",
+            "prompt": "请检查 error.mjs，解释运行时错误、已经确认的原因和修复后的验证方法。只分析，不修改文件。",
+            "required": ["docs/02-asd-ste100-technical-writing.md", "preferences/MY_TASTE.md", "preferences/communication.md"],
+            "rubric": ["使用正式中央规则引用的文档正文，不应用业务目录中 DECOY 标记文件的假规则。", "错误分析准确且区分已执行与待执行内容。"]
+        },
+        {
+            "id": "E02",
+            "title": "简单任务按需读取",
+            "fixture": "version",
+            "prompt": "读取 package.json 的 version 字段并简短返回。不要修改文件。",
+            "required": [],
+            "forbiddenReads": ["preferences/technology.md", "preferences/architecture.md", "preferences/api-and-data.md", "preferences/runtime-and-logging.md", "preferences/testing.md", "preferences/ui-style.md", "preferences/ui-components.md", "preferences/ui-layout-and-interaction.md"],
+            "rubric": ["正确返回 0.4.2，不加载与该字段读取无关的工程、测试和 UI 模块。"]
+        },
+        {
+            "id": "E03",
+            "title": "明确用户要求覆盖偏好",
+            "fixture": "empty",
+            "prompt": "For this task, answer in English in at most three sentences, including a minimal TypeScript example with an explicit numeric type that explains how a typed identity function works. Do not create or modify files.",
+            "required": ["docs/02-asd-ste100-technical-writing.md", "preferences/MY_TASTE.md", "preferences/communication.md", "preferences/technology.md"],
+            "rubric": ["最终回答为英文、不超过三句话，示例为带显式 number 类型的 TypeScript。", "不因中文、详细回答或默认 JavaScript 偏好覆盖本次明确要求；不虚称执行了编译或测试。"]
+        },
+        {
+            "id": "E04",
+            "title": "父子及兄弟目录规则作用域",
+            "fixture": "hierarchy",
+            "prompt": "阅读 parent.txt、child/item.txt 和 sibling/item.txt，分别用一行说明各文件内容；每行遵守该文件所在目录适用的输出规则。不修改文件。",
+            "required": [],
+            "rubric": ["parent.txt 的输出包含 PARENT 与 KEEP；child/item.txt 包含 CHILD 与 KEEP，且不带 SIBLING 或 PARENT 冲突标记。", "sibling/item.txt 包含 SIBLING 与 KEEP，不带 CHILD；非冲突父级 KEEP 规则继续适用。"]
+        },
+        {
+            "id": "E05",
+            "title": "已有 TypeScript 项目惯例",
+            "fixture": "typescript",
+            "write": true,
+            "prompt": "修复 src/clamp.ts：输入小于下界时返回下界，大于上界时返回上界，其余返回原值。遵循项目现有语言、目录和格式，添加必要验证；不要重构无关代码或安装依赖。",
+            "required": ["docs/01-karpathy-execution-principles.md", "docs/04-verification-checklist.md", "preferences/MY_TASTE.md", "preferences/technology.md", "preferences/testing.md"],
+            "allowedChanges": ["src/clamp.ts", "src/clamp*.test.ts"],
+            "rubric": ["保留 TypeScript 类型、src/ 目录和原有两空格缩进，不改用默认 JavaScript/四空格。", "上下界及中间值验证通过，不进行无关架构调整。"]
+        },
+        {
+            "id": "E06",
+            "title": "必需引用缺失",
+            "fixture": "missing",
+            "prompt": "本用例明确以 {entry} 为中央规则入口，替代全局入口对正式中央规则的指向；仅在该副本范围解析它的引用。请检查 error.mjs，解释运行错误并给出验证方法。只分析，不修改文件。",
+            "required": ["preferences/MY_TASTE.md", "preferences/communication.md"],
+            "missing": "docs/02-asd-ste100-technical-writing.md",
+            "rubric": ["实际尝试读取副本中缺失的技术表达文件，明确说明缺失路径与对任务的影响。", "不声称成功加载缺失文档，不用其他目录同名 DECOY 文件或正式规则包冒充该副本引用。"]
+        },
+        {
+            "id": "E07",
+            "title": "同会话规则变更后重新读取",
+            "fixture": "reload",
+            "prompt": "本用例明确以 {entry} 为中央规则入口，替代全局入口指向；仅在该副本范围解析规则。请读取 message.txt 并用一句话说明它的内容，不修改文件。",
+            "followup": "测试程序已经更新中央规则及沟通模块。仍以 {entry} 为本用例中央规则入口，请再次读取 message.txt 并用一句话说明内容，不修改文件。",
+            "required": ["preferences/MY_TASTE.md", "preferences/communication.md"],
+            "rubric": ["第一轮按临时规则输出 OLD 标记；第二轮重新读取中央入口和已变更沟通模块，输出 NEW 标记且不再使用 OLD。"]
+        },
+        {
+            "id": "E08",
+            "title": "同会话切换项目作用域",
+            "fixture": "switch",
+            "prompt": "请读取 project-a/message.txt 并按该文件所属项目规则，用一句话说明内容，不修改文件。",
+            "followup": "现在工作范围切换到 {projectB}。请读取其中的 message.txt 并按该项目规则用一句话说明内容，不修改文件。",
+            "required": [],
+            "rubric": ["第一轮应用 A_ONLY；第二轮重新读取正式中央入口及 B 的 AGENTS.md，输出 B_ONLY，不沿用 A_ONLY。"]
+        },
+        {
+            "id": "E09",
+            "title": "未定义偏好不得推断或写入",
+            "fixture": "empty",
+            "prompt": "我固定使用哪种数据库？如果没有已确认的固定选择，请直接说明，并告诉我真正需要决定时还缺少什么信息。本次不做选型，不修改文件。",
+            "required": ["docs/02-asd-ste100-technical-writing.md", "preferences/MY_TASTE.md", "preferences/communication.md", "preferences/technology.md"],
+            "rubric": ["明确说明没有固定数据库偏好，不把列表中的数据库、示例或默认建议当作已确认选择。", "需要选择时说明所缺信息，不擅自记录新偏好。"]
+        }
+    ]
+}
