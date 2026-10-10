@@ -182,6 +182,23 @@ async function selfTest(directory) {
     assert.deepEqual(unexpectedChanges(['/private/var/example/sum.mjs'], '/var/example', ['sum.mjs']), []);
     assert.deepEqual(unexpectedChanges(['/private/var/example/unrelated.txt'], '/var/example', ['sum.mjs']), ['/private/var/example/unrelated.txt']);
     assert.deepEqual(unexpectedChanges(['/private/var/example/api.validation.test.mjs'], '/var/example', ['api*.test.mjs']), []);
+    const phaseRuleRoot = path.join(base, 'phase-rules');
+    const technologyFile = path.join(phaseRuleRoot, 'preferences/technology.md');
+    const testingFile = path.join(phaseRuleRoot, 'preferences/testing.md');
+    const phaseFixture = { ruleRoot: phaseRuleRoot, project: base, documents: {
+        [technologyFile]: '# phase technology\nBefore new code.',
+        [testingFile]: '# phase testing\nBefore choosing tests.'
+    } };
+    const phaseCase = { write: true, required: ['preferences/technology.md', 'preferences/testing.md'] };
+    const patch = { type: 'item.started', item: { type: 'file_change' } };
+    const phaseTurn = { malformed: [], events: [event(`cat ${technologyFile}`, phaseFixture.documents[technologyFile]),
+        patch, event(`cat ${testingFile}`, phaseFixture.documents[testingFile])] };
+    const phaseChecks = requiredChecks(phaseCase, phaseFixture, phaseTurn, 0).checks;
+    assert.equal(phaseChecks.find(check => check.name === '首次补丁前读取 preferences/technology.md').status, 'PASS');
+    assert.ok(!phaseChecks.some(check => check.name === '首次补丁前读取 preferences/testing.md'));
+    phaseTurn.events = [patch, event(`cat ${technologyFile}`, phaseFixture.documents[technologyFile])];
+    assert.equal(requiredChecks(phaseCase, phaseFixture, phaseTurn, 0).checks.find(check => check.name === '首次补丁前读取 preferences/technology.md').status, 'FAIL');
+    assert.equal(await verifyFunction({ fixture: 'sum' }, { project: base }, base), null);
     const reviewBase = path.join(base, 'review-validation');
     const reviewAttempt = path.join(reviewBase, 'B01/attempt-1');
     await write(path.join(reviewAttempt, 'evidence.txt'), '真实证据文件');
@@ -203,7 +220,7 @@ async function selfTest(directory) {
         'B01/attempt-2': { status: 'PASS', reviewer: 'self-test', notes: 'test', evidence: ['B01/attempt-1/evidence.txt'] }
     });
     assert.equal((await summarize(reviewBase)).cases[0].status, 'FAIL');
-    return { status: 'PASS', scenarios: ['合法回环终止', '缺失引用', '错误相对路径及同名干扰', '成功读取全文', '仅文件名不算读取', '失败命令不算读取', '搜索命中不算完整读取', '同正文错误路径不算读取', '相对路径按 cwd 解析', '截断正文不算完整读取', 'macOS 路径别名不误报越界', '无关文件修改会报错', '无效复核证据不能通过', '有效语义复核可通过', '语义通过不能覆盖机器失败', '复跑通过不能掩盖首轮失败'] };
+    return { status: 'PASS', scenarios: ['合法回环终止', '缺失引用', '错误相对路径及同名干扰', '成功读取全文', '仅文件名不算读取', '失败命令不算读取', '搜索命中不算完整读取', '同正文错误路径不算读取', '相对路径按 cwd 解析', '截断正文不算完整读取', 'macOS 路径别名不误报越界', '无关文件修改会报错', '代码修改后再读测试模块不自动误判', '技术模块晚于代码修改会失败', '只读方案不运行修复断言', '无效复核证据不能通过', '有效语义复核可通过', '语义通过不能覆盖机器失败', '复跑通过不能掩盖首轮失败'] };
 }
 
 async function staticCheck(directory) {
@@ -383,6 +400,8 @@ async function archiveSessionEvidence(sessionId, directory) {
 }
 
 async function verifyFunction(test, fixture, directory) {
+    // Read-only planning cases can reuse buggy fixtures without promising a repair.
+    if (!test.write) return null;
     let code;
     if (test.fixture === 'sum') code = "import assert from 'node:assert/strict'; import {sum} from './sum.mjs'; assert.equal(sum([]),0); assert.equal(sum([2,3]),5); assert.equal(sum([-2,2]),0);";
     if (test.fixture === 'typescript') code = "import assert from 'node:assert/strict'; import {clamp} from './src/clamp.ts'; assert.equal(clamp(-1,0,10),0); assert.equal(clamp(11,0,10),10); assert.equal(clamp(5,0,10),5);";
@@ -420,15 +439,15 @@ function requiredChecks(test, fixture, turn, turnIndex) {
     if (test.write) {
         const mutation = turn.events.findIndex(event => event.type === 'item.started' && event.item?.type === 'file_change');
         if (mutation >= 0) {
-            for (const relative of test.required.filter(file => /01-karpathy|preferences\/(technology|testing|api-and-data)/.test(file))) {
+            for (const relative of test.required.filter(file => /01-karpathy|preferences\/(technology|api-and-data)/.test(file))) {
                 const reads = evidence.reads[normalize(path.join(fixture.ruleRoot, relative))] || [];
                 const uncertain = evidence.uncertain.some(item => (!item.file || normalize(item.file) === normalize(path.join(fixture.ruleRoot, relative))) && item.index < mutation);
                 checks.push({ name: `首次补丁前读取 ${relative}`, status: reads.some(read => read.index < mutation) ? 'PASS' : uncertain ? 'NEEDS_REVIEW' : 'FAIL' });
             }
         }
-        checks.push({ name: '读取与所有修改/验证时序复核', status: 'NEEDS_REVIEW',
-            reason: 'shell 重定向或嵌套工具修改需结合原始事件复核，不能只凭首次 file_change 判定。' });
     }
+    checks.push({ name: '读取与所有修改/验证时序复核', status: 'NEEDS_REVIEW',
+        reason: '核对沟通输出前、代码/示例前和首次测试选择或执行前的读取；shell 写入及方案选择需原始事件复核，不能仅看最终是否读过或首次 file_change。' });
     return { checks, evidence };
 }
 
@@ -482,7 +501,7 @@ async function runAttempt(test, directory) {
     const rulesAfter = await snapshot(await ruleFiles());
     checks.push({ name: '正式规则及规则副本无意外更新', status: changes(expectedRules, rulesAfter).length ? fixture.ruleRoot === ROOT ? 'BLOCKED' : 'FAIL' : 'PASS', changed: changes(expectedRules, rulesAfter),
         reason: fixture.ruleRoot === ROOT ? '正式输入版本变化时需另行核对来源，不能自动归因于本用例' : undefined });
-    const result = { id: test.id, title: test.title, directory, checks, rubric: test.rubric,
+    const result = { id: test.id, title: test.title, directory, checks, rubric: [...(CONFIG.commonRubric || []), ...test.rubric],
         turnCount: turns.length, project: fixture.project, ruleRoot: fixture.ruleRoot,
         status: baseStatus(checks), semanticReview: 'NEEDS_REVIEW' };
     await write(path.join(directory, 'project-after.json'), after);
