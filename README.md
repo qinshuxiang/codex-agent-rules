@@ -20,7 +20,7 @@ https://raw.githubusercontent.com/qinshuxiang/codex-agent-rules/main/AGENTS.md
 
 ## 规则内容
 
-`AGENTS.md` 分四部分：
+`AGENTS.md` 分五部分：
 
 | 章节 | 内容 |
 | --- | --- |
